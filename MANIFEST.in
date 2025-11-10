@@ -1,0 +1,3 @@
+include README.md
+include license.txt
+recursive-include st_transformers_js/frontend/build *

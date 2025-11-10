@@ -1,18 +1,22 @@
-import streamlit.components.v1 as components
+import streamlit as st
 import os
 import base64
 
+# Set this to False for local development
 _RELEASE = True
 
+# The component name must be consistent with the one in pyproject.toml
+COMPONENT_NAME = "transformers_js"
+
 if not _RELEASE:
-    _component_func = components.declare_component(
-        "transformers_js",
+    # For local development, you can serve the frontend from a dev server
+    _component_func = st.components.v2.component(
+        COMPONENT_NAME,
         url="http://localhost:3001",
     )
 else:
-    parent_dir = os.path.dirname(os.path.abspath(__file__))
-    build_dir = os.path.join(parent_dir, "frontend/build")
-    _component_func = components.declare_component("transformers_js", path=build_dir)
+    # For release, Streamlit will serve the assets from the package's asset_dir
+    _component_func = st.components.v2.component(COMPONENT_NAME)
 
 
 def transformers_js_pipeline(
@@ -51,31 +55,13 @@ def transformers_js_pipeline(
     --------
     dict or None
         Pipeline output as JSON, or None if still processing
-    
-    Examples:
-    ---------
-    >>> # Image to text
-    >>> with open("receipt.jpg", "rb") as f:
-    ...     img_bytes = f.read()
-    >>> result = transformers_js_pipeline(
-    ...     "Xenova/donut-base-finetuned-cord-v2",
-    ...     "image-to-text",
-    ...     img_bytes
-    ... )
-    
-    >>> # Text classification
-    >>> result = transformers_js_pipeline(
-    ...     "Xenova/distilbert-base-uncased-finetuned-sst-2-english",
-    ...     "text-classification",
-    ...     "I love this product!"
-    ... )
     """
     # Convert bytes to base64 if needed
     processed_inputs = inputs
     if isinstance(inputs, bytes):
         processed_inputs = base64.b64encode(inputs).decode('utf-8')
     
-    # Prepare configuration
+    # Prepare configuration for the frontend
     component_config = {
         "model_name": model_name,
         "pipeline_type": pipeline_type,
