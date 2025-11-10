@@ -1,4 +1,0 @@
-include README.md
-include LICENSE
-recursive-include st_transformers_js/frontend/build *
-recursive-include st_transformers_js/frontend/public *.js
