@@ -136,9 +136,8 @@ transformers_js_pipeline(
 st_transformers_js/
 │
 ├─ frontend/
-│   ├─ public/
-│   │   ├─ index.html
-│   │   └─ transformers.min.js   ← Download from CDN
+│   ├─ index.html
+│   └─ transformers.min.js   ← Download from CDN
 │   └─ build/                     ← Created during build
 │
 ├─ st_transformers_js/
@@ -159,16 +158,13 @@ Download the bundled version from:
 https://cdn.jsdelivr.net/npm/@xenova/transformers@3.2.0/dist/transformers.min.js
 ```
 
-Place it in `frontend/public/transformers.min.js`
+Place it in `frontend/transformers.min.js`
 
 2. **Prepare the build directory**
 
 ```bash
-# Create build directory
-mkdir -p st_transformers_js/frontend/build
-
-# Copy files to build
-cp frontend/public/* st_transformers_js/frontend/build/
+# Build will be created automatically by build script
+bash build_script.sh
 ```
 
 3. **Install in development mode**
