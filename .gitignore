@@ -2,14 +2,13 @@
 dist/
 build/
 *.egg-info/
-
-# Python cache
 __pycache__/
-
-# Log files
+*.pyc
 *.log
 
-# Node.js dependencies
+# Frontend
 node_modules/
-/st_transformers_js/frontend/build
-/st_transformers_js/frontend/public/transformers.min.js
+st_transformers_js/frontend/build/
+
+# Don't ignore the downloaded transformers.js
+!frontend/transformers.min.js

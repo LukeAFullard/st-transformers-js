@@ -7,7 +7,7 @@ import base64
 _RELEASE = True
 
 # The component name must be consistent with the one in pyproject.toml
-COMPONENT_NAME = "transformers_js"
+COMPONENT_NAME = "st_transformers_js"
 
 if not _RELEASE:
     # For local development, you can serve the frontend from a dev server
@@ -30,6 +30,8 @@ def transformers_js_pipeline(
     pipeline_type,
     inputs,
     config=None,
+    width=600,
+    height=400,
     key=None
 ):
     """
@@ -72,6 +74,8 @@ def transformers_js_pipeline(
     # Call the component
     component_value = _component_func(
         config=component_config,
+        width=width,
+        height=height,
         key=key,
         default=None
     )

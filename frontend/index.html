@@ -90,6 +90,17 @@
       logEl.appendChild(entry);
       logEl.scrollTop = logEl.scrollHeight;
     }
+
+    // Add timeout to detect if transformers.js failed to load
+    setTimeout(() => {
+      if (typeof transformers === 'undefined') {
+        log('ERROR: transformers.js failed to load', 'error');
+        window.parent.postMessage({
+          type: 'streamlit:setComponentValue',
+          value: { error: 'transformers.js library not loaded' }
+        }, '*');
+      }
+    }, 5000);
     
     function displayResult(data) {
       resultEl.textContent = JSON.stringify(data, null, 2);
