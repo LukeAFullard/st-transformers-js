@@ -70,13 +70,14 @@ def transformers_js_pipeline(
         try:
             import magic
             mime_type = magic.from_buffer(inputs, mime=True)
-        except ImportError:
-            # If python-magic is not installed, we can make a reasonable guess.
-            # This is not a foolproof method.
+        except Exception:
+            # Fallback to manual detection
             if inputs.startswith(b'\x89PNG'):
                 mime_type = 'image/png'
             elif inputs.startswith(b'\xff\xd8'):
                 mime_type = 'image/jpeg'
+            elif inputs.startswith(b'GIF'):
+                mime_type = 'image/gif'
         processed_inputs = base64.b64encode(inputs).decode('utf-8')
     
     # Call the component
