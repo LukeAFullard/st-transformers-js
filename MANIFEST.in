@@ -1,3 +1,1 @@
-include st_transformers_js/__init__.py
-recursive-include st_transformers_js *.py
-recursive-include st_transformers_js/frontend/build *
+recursive-include st_transformers_js/frontend *

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Streamlit Transformers.js Component</title>
+  <script src="https://cdn.jsdelivr.net/npm/streamlit-component-lib@1.1.0/index.min.js"></script>
   <style>
     body {
       font-family: 'Courier New', monospace;
@@ -138,23 +139,16 @@
 
     function setFrameHeight() {
         const height = Math.max(document.body.scrollHeight, 400);
-        window.parent.postMessage({
-            isStreamlitMessage: true,
-            type: 'streamlit:setFrameHeight',
-            height: height
-        }, '*');
+        Streamlit.setFrameHeight(height);
     }
 
     function showSpinner(show) {
         spinnerEl.style.display = show ? 'block' : 'none';
     }
     
-    // Wait for Streamlit to send data
-    window.addEventListener('message', async (event) => {
-      if (event.data.type !== 'streamlit:render') return;
-      
-      const args = event.data.args;
-      const disabled = event.data.disabled;
+    async function onRender(event) {
+      const args = event.detail.args;
+      const disabled = event.detail.disabled;
 
       if (disabled) {
           disabledOverlayEl.style.display = 'flex';
@@ -219,32 +213,20 @@
         setFrameHeight();
 
         // Send result back to Streamlit
-        window.parent.postMessage({
-          isStreamlitMessage: true,
-          type: 'streamlit:setComponentValue',
-          value: result
-        }, '*');
+        Streamlit.setComponentValue(result);
 
       } catch (error) {
         log(`Error: ${error.message}`, 'error');
         console.error('Pipeline error:', error);
 
-        window.parent.postMessage({
-          isStreamlitMessage: true,
-          type: 'streamlit:setComponentValue',
-          value: { error: error.message }
-        }, '*');
+        Streamlit.setComponentValue({ error: error.message });
       } finally {
         showSpinner(false);
       }
-    });
+    }
 
-    // Notify Streamlit component is ready
-    window.parent.postMessage({
-      isStreamlitMessage: true,
-      type: 'streamlit:componentReady',
-      apiVersion: 1
-    }, '*');
+    Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, onRender);
+    Streamlit.setComponentReady();
     setFrameHeight();
     
     log('Waiting for pipeline configuration...', 'info');
