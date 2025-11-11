@@ -17,7 +17,7 @@ FRONTEND_DIR="st_transformers_js/frontend"
 PUBLIC_DIR="$FRONTEND_DIR/public"
 BUILD_DIR="$FRONTEND_DIR/build"
 TRANSFORMERS_FILE="$PUBLIC_DIR/transformers.min.js"
-TRANSFORMERS_URL="https://cdn.jsdelivr.net/npm/@xenova/transformers"
+TRANSFORMERS_URL="https://cdn.jsdelivr.net/npm/@xenova/transformers/dist/transformers.min.js"
 
 # Step 1: Create directory structure
 echo -e "${YELLOW}📁 Creating directory structure...${NC}"
@@ -35,8 +35,7 @@ fi
 
 # Step 3: Copy files to build directory
 echo -e "${YELLOW}📋 Copying files to build directory...${NC}"
-cp "$PUBLIC_DIR/index.html" "$BUILD_DIR/"
-cp "$PUBLIC_DIR/transformers.min.js" "$BUILD_DIR/"
+cp -r $PUBLIC_DIR/* $BUILD_DIR/
 
 echo -e "${GREEN}✓ Files copied to build directory${NC}"
 
