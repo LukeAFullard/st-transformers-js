@@ -103,6 +103,7 @@
     function setFrameHeight() {
         const height = Math.max(document.body.scrollHeight, 400);
         window.parent.postMessage({
+        isStreamlitMessage: true,
             type: 'streamlit:setFrameHeight',
             height: height
         }, '*');
@@ -169,6 +170,7 @@
 
         // Send result back to Streamlit
         window.parent.postMessage({
+          isStreamlitMessage: true,
           type: 'streamlit:setComponentValue',
           value: result
         }, '*');
@@ -178,6 +180,7 @@
         console.error('Pipeline error:', error);
 
         window.parent.postMessage({
+          isStreamlitMessage: true,
           type: 'streamlit:setComponentValue',
           value: { error: error.message }
         }, '*');
@@ -186,6 +189,7 @@
 
     // Notify Streamlit component is ready
     window.parent.postMessage({
+      isStreamlitMessage: true,
       type: 'streamlit:componentReady',
       apiVersion: 1
     }, '*');
