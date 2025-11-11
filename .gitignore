@@ -6,8 +6,10 @@ build/
 # Python cache
 __pycache__/
 
-# Logs
+# Log files
 *.log
 
-# Node modules
+# Node.js dependencies
 node_modules/
+/st_transformers_js/frontend/build
+/st_transformers_js/frontend/public/transformers.min.js
