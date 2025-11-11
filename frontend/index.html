@@ -91,47 +91,49 @@
       logEl.scrollTop = logEl.scrollHeight;
     }
 
-    // Add timeout to detect if transformers.js failed to load
-    setTimeout(() => {
-      if (typeof transformers === 'undefined') {
-        log('ERROR: transformers.js failed to load', 'error');
-        window.parent.postMessage({
-          type: 'streamlit:setComponentValue',
-          value: { error: 'transformers.js library not loaded' }
-        }, '*');
-      }
-    }, 5000);
+    // Verify transformers.js loaded
+    if (typeof transformers === 'undefined') {
+        log('ERROR: transformers.js not loaded. Check build directory.', 'error');
+    }
     
     function displayResult(data) {
       resultEl.textContent = JSON.stringify(data, null, 2);
+    }
+
+    function setFrameHeight() {
+        const height = Math.max(document.body.scrollHeight, 400);
+        window.parent.postMessage({
+            type: 'streamlit:setFrameHeight',
+            height: height
+        }, '*');
     }
     
     // Wait for Streamlit to send data
     window.addEventListener('message', async (event) => {
       if (event.data.type !== 'streamlit:render') return;
       
-      const config = event.data.args.config;
-      
-      if (!config) {
+      const args = event.data.args;
+
+      if (!args || !args.model_name || !args.pipeline_type) {
         log('No configuration received', 'error');
         return;
       }
-      
-      log(`Pipeline: ${config.pipeline_type}`, 'info');
-      log(`Model: ${config.model_name}`, 'info');
-      
+
+      log(`Pipeline: ${args.pipeline_type}`, 'info');
+      log(`Model: ${args.model_name}`, 'info');
+
       try {
         // Check if transformers is available
         if (typeof transformers === 'undefined') {
           throw new Error('Transformers.js not loaded');
         }
-        
+
         log('Loading pipeline...', 'progress');
-        
+
         // Create pipeline
         const pipeline = await transformers.pipeline(
-          config.pipeline_type,
-          config.model_name,
+          args.pipeline_type,
+          args.model_name,
           {
             progress_callback: (progress) => {
               if (progress.status === 'downloading') {
@@ -143,49 +145,51 @@
             }
           }
         );
-        
+
         log('Pipeline loaded successfully ✓', 'success');
-        
+
         // Process inputs
-        let processedInputs = config.inputs;
-        
+        let processedInputs = args.inputs;
+
         // Handle base64 images
         if (typeof processedInputs === 'string' && processedInputs.length > 100) {
           // Likely base64 image
           processedInputs = `data:image/jpeg;base64,${processedInputs}`;
           log('Processing image input...', 'progress');
         }
-        
+
         log('Running inference...', 'progress');
-        
+
         // Run pipeline
-        const result = await pipeline(processedInputs, config.config);
-        
+        const result = await pipeline(processedInputs, args.config || {});
+
         log('Inference complete ✓', 'success');
         displayResult(result);
-        
+        setFrameHeight();
+
         // Send result back to Streamlit
         window.parent.postMessage({
           type: 'streamlit:setComponentValue',
           value: result
         }, '*');
-        
+
       } catch (error) {
         log(`Error: ${error.message}`, 'error');
         console.error('Pipeline error:', error);
-        
+
         window.parent.postMessage({
           type: 'streamlit:setComponentValue',
           value: { error: error.message }
         }, '*');
       }
     });
-    
+
     // Notify Streamlit component is ready
     window.parent.postMessage({
       type: 'streamlit:componentReady',
       apiVersion: 1
     }, '*');
+    setFrameHeight();
     
     log('Waiting for pipeline configuration...', 'info');
   </script>

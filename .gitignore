@@ -8,7 +8,7 @@ __pycache__/
 
 # Frontend
 node_modules/
-st_transformers_js/frontend/build/
+**/build/
 
 # Don't ignore the downloaded transformers.js
 !frontend/transformers.min.js
