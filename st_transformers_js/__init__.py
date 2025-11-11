@@ -63,17 +63,12 @@ def transformers_js_pipeline(
     if isinstance(inputs, bytes):
         processed_inputs = base64.b64encode(inputs).decode('utf-8')
     
-    # Prepare configuration for the frontend
-    component_config = {
-        "model_name": model_name,
-        "pipeline_type": pipeline_type,
-        "inputs": processed_inputs,
-        "config": config or {}
-    }
-    
     # Call the component
     component_value = _component_func(
-        config=component_config,
+        pipeline_type=pipeline_type,
+        model_name=model_name,
+        inputs=processed_inputs,
+        config=config or {},
         width=width,
         height=height,
         key=key,
