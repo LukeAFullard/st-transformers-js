@@ -2,9 +2,10 @@ import streamlit as st
 import streamlit.components.v1 as components
 import os
 import base64
+from typing import Union, Optional
 
-# Set this to False for local development
-_RELEASE = True
+# Set _RELEASE to False when the STREAMLIT_COMPONENT_DEV_MODE env var is set
+_RELEASE = not os.getenv("STREAMLIT_COMPONENT_DEV_MODE")
 
 # The component name must be consistent with the one in pyproject.toml
 COMPONENT_NAME = "st_transformers_js"
@@ -26,14 +27,14 @@ else:
 
 
 def transformers_js_pipeline(
-    model_name,
-    pipeline_type,
-    inputs,
-    config=None,
-    width=600,
-    height=400,
-    key=None
-):
+    model_name: str,
+    pipeline_type: str,
+    inputs: Union[str, bytes, dict],
+    config: Optional[dict] = None,
+    width: int = 600,
+    height: int = 400,
+    key: Optional[str] = None,
+) -> Optional[dict]:
     """
     Run a transformers.js pipeline in the browser.
     
@@ -58,9 +59,24 @@ def transformers_js_pipeline(
     dict or None
         Pipeline output as JSON, or None if still processing
     """
+    # Input validation
+    if not isinstance(inputs, (str, bytes, dict)):
+        raise TypeError(f"Input type not supported: {type(inputs)}. Must be str, bytes, or dict.")
+
     # Convert bytes to base64 if needed
     processed_inputs = inputs
+    mime_type = None
     if isinstance(inputs, bytes):
+        try:
+            import magic
+            mime_type = magic.from_buffer(inputs, mime=True)
+        except ImportError:
+            # If python-magic is not installed, we can make a reasonable guess.
+            # This is not a foolproof method.
+            if inputs.startswith(b'\x89PNG'):
+                mime_type = 'image/png'
+            elif inputs.startswith(b'\xff\xd8'):
+                mime_type = 'image/jpeg'
         processed_inputs = base64.b64encode(inputs).decode('utf-8')
     
     # Call the component
@@ -68,7 +84,8 @@ def transformers_js_pipeline(
         pipeline_type=pipeline_type,
         model_name=model_name,
         inputs=processed_inputs,
-        config=config or {},
+        mime_type=mime_type,
+        config=config if config is not None else {},
         width=width,
         height=height,
         key=key,
