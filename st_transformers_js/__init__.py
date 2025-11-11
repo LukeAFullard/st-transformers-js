@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import os
 import base64
 
@@ -10,13 +11,18 @@ COMPONENT_NAME = "transformers_js"
 
 if not _RELEASE:
     # For local development, you can serve the frontend from a dev server
-    _component_func = st.components.v2.component(
+    _component_func = components.declare_component(
         COMPONENT_NAME,
-        url="http://localhost:3001",
+        url="http://localhost:5173",
     )
 else:
     # For release, Streamlit will serve the assets from the package's asset_dir
-    _component_func = st.components.v2.component(COMPONENT_NAME)
+    parent_dir = os.path.dirname(os.path.abspath(__file__))
+    build_dir = os.path.join(parent_dir, "frontend/build")
+    _component_func = components.declare_component(
+        COMPONENT_NAME,
+        path=build_dir,
+    )
 
 
 def transformers_js_pipeline(
@@ -24,8 +30,6 @@ def transformers_js_pipeline(
     pipeline_type,
     inputs,
     config=None,
-    width=600,
-    height=400,
     key=None
 ):
     """
@@ -44,10 +48,6 @@ def transformers_js_pipeline(
         - For other tasks: appropriate input format
     config : dict, optional
         Additional configuration for the pipeline
-    width : int, optional
-        Component width in pixels (default: 600)
-    height : int, optional
-        Component height in pixels (default: 400)
     key : str, optional
         Unique key for the component
     
@@ -72,8 +72,6 @@ def transformers_js_pipeline(
     # Call the component
     component_value = _component_func(
         config=component_config,
-        width=width,
-        height=height,
         key=key,
         default=None
     )
