@@ -51,7 +51,10 @@ const MyComponent: Component<ComponentStatus, ComponentData> = (args) => {
         } else {
             progressEl.style.display = "none";
         }
-        setStateValue({ status, message, progress });
+        // Set state values individually, as expected by component-v2-lib v0.1.0
+        setStateValue("status", status);
+        setStateValue("message", message);
+        setStateValue("progress", progress);
     };
 
     // --- Main Pipeline Logic ---
@@ -78,12 +81,12 @@ const MyComponent: Component<ComponentStatus, ComponentData> = (args) => {
             const result = await pipe(processedInputs, data.config);
 
             updateStatus("complete", "Inference complete!");
-            setStateValue({ status: "complete", message: "Result returned.", result: result });
+            setStateValue("result", result);
 
         } catch (error: any) {
             console.error("Pipeline error:", error);
             updateStatus("error", `Error: ${error.message}`);
-            setStateValue({ status: "error", message: `Error: ${error.message}`, error: error.message });
+            setStateValue("error", error.message);
         }
     };
 

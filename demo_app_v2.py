@@ -1,137 +1,145 @@
-"""
-Demo application for st-transformers-js v2 component
-Tests multiple pipeline types with different models
-"""
 import streamlit as st
 from st_transformers_js import transformers_js_pipeline_v2
+from PIL import Image, ImageDraw
 
-st.set_page_config(
-    page_title="Transformers.js v2 Demo",
-    page_icon="🤗",
-    layout="wide"
-)
+st.set_page_config(layout="wide")
 
-st.title("🤗 Transformers.js in Streamlit (v2 Component)")
-st.markdown("Run Hugging Face models entirely in your browser - no backend required!")
+st.title("Transformers.js Streamlit Component (V2)")
+st.info("This demo shows the V2 component, which uses modern Streamlit component architecture.")
 
-# Sidebar for selecting demo
-demo_type = st.sidebar.selectbox(
-    "Select Demo",
-    ["Text Classification", "Image to Text (Donut)", "Token Classification (NER)"]
-)
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("### About")
-st.sidebar.info(
-    "This component runs transformers.js models entirely in the browser using WebAssembly. "
-    "Models are downloaded once and cached locally."
-)
-
-# Shared session state to store results
-if "result_v2" not in st.session_state:
-    st.session_state.result_v2 = None
-
-# ===== TEXT CLASSIFICATION =====
-if demo_type == "Text Classification":
-    st.header("📝 Text Classification")
-    st.markdown("Analyze sentiment using DistilBERT")
+# --- Text Classification Example ---
+with st.container():
+    st.header("1. Text Classification")
+    st.markdown(
+        "This example performs sentiment analysis on the input text "
+        "using the `Xenova/distilbert-base-uncased-finetuned-sst-2-english` model."
+    )
 
     text_input = st.text_area(
         "Enter text to classify:",
-        value="I absolutely love using Streamlit! It makes building ML apps so easy.",
-        height=100
+        "I love Streamlit components!",
+        key="text_input_v2"
     )
-
-    col1, col2 = st.columns([1, 4])
-    with col1:
-        classify_btn = st.button("Classify", type="primary", use_container_width=True)
+    classify_btn = st.button("Classify Text", key="classify_btn_v2")
 
     if classify_btn and text_input:
-        st.session_state.result_v2 = transformers_js_pipeline_v2(
+        # The component now returns a result object with attributes
+        result = transformers_js_pipeline_v2(
             model_name="Xenova/distilbert-base-uncased-finetuned-sst-2-english",
             pipeline_type="text-classification",
             inputs=text_input,
-            key="text_clf_v2"
+            key="text_clf_v2",
+            on_change=lambda: st.rerun(),  # Trigger a rerun on state changes
         )
 
-# ===== IMAGE TO TEXT (DONUT) =====
-elif demo_type == "Image to Text (Donut)":
-    st.header("🖼️ Document OCR with Donut")
-    st.markdown("Extract structured data from receipts and documents")
+        # Display status based on the result object's attributes
+        if result:
+            if result.status == "loading":
+                st.info(f"Loading model '{result.message}'...")
+            elif result.status in ["download", "init"]:
+                st.info(f"Downloading model... ({result.message})")
+                if result.progress:
+                    st.progress(result.progress / 100)
+            elif result.status == "processing":
+                st.info("Running inference...")
+            elif result.status == "complete" and result.result:
+                st.success("Classification complete!")
+                st.json(result.result)
+            elif result.error:
+                st.error(f"An error occurred: {result.error}")
+            else:
+                # Fallback for any other state
+                st.write(f"Component state: {result}")
 
-    uploaded_file = st.file_uploader(
-        "Upload a receipt or document image",
-        type=["jpg", "jpeg", "png"],
-        help="Upload a clear image of a receipt or invoice"
+
+# --- Image-to-Text Example ---
+with st.container():
+    st.header("2. Image-to-Text (OCR)")
+    st.markdown(
+        "Upload a document image to extract text using the "
+        "`Xenova/donut-base-finetuned-cord-v2` model."
     )
 
-    if uploaded_file is not None:
-        col1, col2 = st.columns([1, 1])
-
-        with col1:
-            st.image(uploaded_file, caption="Uploaded Image", use_container_width=True)
-
-        with col2:
-            if st.button("Extract Text", type="primary"):
-                img_bytes = uploaded_file.read()
-                st.session_state.result_v2 = transformers_js_pipeline_v2(
-                    model_name="Xenova/donut-base-finetuned-cord-v2",
-                    pipeline_type="image-to-text",
-                    inputs=img_bytes,
-                    key="ocr_v2"
-                )
-    else:
-        st.info("👆 Upload an image to get started")
-
-# ===== TOKEN CLASSIFICATION (NER) =====
-elif demo_type == "Token Classification (NER)":
-    st.header("🏷️ Named Entity Recognition")
-    st.markdown("Extract people, organizations, and locations from text")
-
-    text_input = st.text_area(
-        "Enter text for entity extraction:",
-        value="Apple Inc. was founded by Steve Jobs in Cupertino, California. "
-              "The company is now led by Tim Cook and has offices in London and Tokyo.",
-        height=100
+    uploaded_file_ocr = st.file_uploader(
+        "Upload a document image",
+        type=["jpg", "png", "jpeg"],
+        key="ocr_uploader_v2"
     )
 
-    col1, col2 = st.columns([1, 4])
-    with col1:
-        extract_btn = st.button("Extract Entities", type="primary", use_container_width=True)
+    if uploaded_file_ocr:
+        st.image(uploaded_file_ocr, caption="Uploaded Document")
+        if st.button("Extract Text", key="ocr_btn_v2"):
+            img_bytes = uploaded_file_ocr.read()
 
-    if extract_btn and text_input:
-        st.session_state.result_v2 = transformers_js_pipeline_v2(
-            model_name="Xenova/bert-base-NER",
-            pipeline_type="token-classification",
-            inputs=text_input,
-            config={"aggregation_strategy": "simple"},
-            key="ner_v2"
-        )
+            result_ocr = transformers_js_pipeline_v2(
+                model_name="Xenova/donut-base-finetuned-cord-v2",
+                pipeline_type="image-to-text",
+                inputs=img_bytes,
+                key="ocr_v2",
+                on_change=lambda: st.rerun(),
+            )
 
-# --- Display component status and results ---
-if st.session_state.result_v2:
-    status = st.session_state.result_v2.get("status", "idle")
-    message = st.session_state.result_v2.get("message", "")
-    progress = st.session_state.result_v2.get("progress")
-    result = st.session_state.result_v2.get("result")
-    error = st.session_state.result_v2.get("error")
+            if result_ocr:
+                if result_ocr.status in ["download", "init"]:
+                    st.info(f"Downloading model... ({result_ocr.message})")
+                    if result_ocr.progress:
+                        st.progress(result_ocr.progress / 100)
+                elif result_ocr.status == "complete" and result_ocr.result:
+                    st.success("Text extraction complete!")
+                    st.json(result_ocr.result)
+                elif result_ocr.error:
+                    st.error(f"Error: {result_ocr.error}")
 
-    if status in ["loading", "processing", "download"] and message:
-        with st.spinner(message):
-            if progress:
-                st.progress(progress / 100)
-            st.empty() # Keep the spinner running
 
-    if error:
-        st.error(f"An error occurred: {error}")
+# --- Object Detection Example ---
+with st.container():
+    st.header("3. Object Detection")
+    st.markdown(
+        "Upload an image to detect objects using the `Xenova/detr-resnet-50` model. "
+        "Bounding boxes will be drawn on the image."
+    )
 
-    if result:
-        st.success("Processing Complete!")
-        st.json(result)
+    uploaded_file_obj = st.file_uploader(
+        "Upload an image for object detection",
+        type=["jpg", "png", "jpeg"],
+        key="obj_uploader_v2"
+    )
 
-# Footer
-st.markdown("---")
-st.markdown(
-    "Built with [Streamlit](https://streamlit.io) and "
-    "[Transformers.js](https://github.com/xenova/transformers.js)"
-)
+    if uploaded_file_obj:
+        image = Image.open(uploaded_file_obj)
+        st.image(image, caption="Uploaded Image for Detection")
+
+        if st.button("Detect Objects", key="obj_btn_v2"):
+            img_bytes = uploaded_file_obj.getvalue()
+
+            result_obj = transformers_js_pipeline_v2(
+                model_name="Xenova/detr-resnet-50",
+                pipeline_type="object-detection",
+                inputs=img_bytes,
+                key="obj_detect_v2",
+                on_change=lambda: st.rerun(),
+            )
+
+            if result_obj:
+                if result_obj.status in ["download", "init"]:
+                    st.info(f"Downloading model... ({result_obj.message})")
+                    if result_obj.progress:
+                        st.progress(result_obj.progress / 100)
+                elif result_obj.status == "complete" and result_obj.result:
+                    st.success("Object detection complete!")
+
+                    # Draw bounding boxes
+                    draw = ImageDraw.Draw(image)
+                    for detection in result_obj.result:
+                        box = detection["box"]
+                        label = detection["label"]
+                        score = round(detection["score"], 2)
+
+                        xmin, ymin, xmax, ymax = box.values()
+                        draw.rectangle((xmin, ymin, xmax, ymax), outline="red", width=3)
+                        draw.text((xmin, ymin), f"{label} ({score})", fill="red")
+
+                    st.image(image, caption="Image with Bounding Boxes")
+                    st.json(result_obj.result)
+                elif result_obj.error:
+                    st.error(f"Error: {result_obj.error}")
