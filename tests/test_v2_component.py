@@ -1,6 +1,5 @@
 import unittest
 from unittest.mock import patch
-import os
 
 from st_transformers_js import transformers_js_pipeline_v2
 
@@ -12,13 +11,29 @@ class TestComponentV2(unittest.TestCase):
         Test that the v2 component is called with the correct arguments.
         """
         # Arrange
-        test_text = "Hello, v2!"
+        model_name = "test-model"
+        pipeline_type = "text-classification"
+        inputs = "Hello, v2!"
+        config = {"a": 1}
 
         # Act
-        transformers_js_pipeline_v2(text=test_text, key="test_v2")
+        transformers_js_pipeline_v2(
+            model_name=model_name,
+            pipeline_type=pipeline_type,
+            inputs=inputs,
+            config=config,
+            key="test_v2"
+        )
 
         # Assert
-        mock_component_func.assert_called_once_with(data={"text": test_text}, key="test_v2")
+        expected_data = {
+            "model_name": model_name,
+            "pipeline_type": pipeline_type,
+            "inputs": inputs,
+            "mime_type": None,
+            "config": config,
+        }
+        mock_component_func.assert_called_once_with(data=expected_data, key="test_v2")
 
 if __name__ == '__main__':
     unittest.main()
