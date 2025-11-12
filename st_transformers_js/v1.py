@@ -4,26 +4,16 @@ import os
 import base64
 from typing import Union, Optional
 
-# Set _RELEASE to False when the STREAMLIT_COMPONENT_DEV_MODE env var is set
-_RELEASE = not os.getenv("STREAMLIT_COMPONENT_DEV_MODE")
-
 # The component name must be consistent with the one in pyproject.toml
 COMPONENT_NAME = "st_transformers_js"
 
-if not _RELEASE:
-    # For local development, you can serve the frontend from a dev server
-    _component_func = components.declare_component(
-        COMPONENT_NAME,
-        url="http://localhost:5173",
-    )
-else:
-    # For release, Streamlit will serve the assets from the package's asset_dir
-    parent_dir = os.path.dirname(os.path.abspath(__file__))
-    build_dir = os.path.join(parent_dir, "frontend_v1/build")
-    _component_func = components.declare_component(
-        COMPONENT_NAME,
-        path=build_dir,
-    )
+# For release, Streamlit will serve the assets from the package's asset_dir
+parent_dir = os.path.dirname(os.path.abspath(__file__))
+build_dir = os.path.join(parent_dir, "frontend_v1/build")
+_component_func = components.declare_component(
+    COMPONENT_NAME,
+    path=build_dir,
+)
 
 
 def transformers_js_pipeline(
@@ -95,6 +85,4 @@ def transformers_js_pipeline(
 
     return component_value
 
-
-__version__ = "0.1.0"
 __all__ = ["transformers_js_pipeline"]

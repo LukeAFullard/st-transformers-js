@@ -41,6 +41,7 @@ BUILD_V2_TARGET="st_transformers_js/frontend_v2/dist"
 rm -rf "$BUILD_V2_TARGET" || true
 mkdir -p "$BUILD_V2_TARGET"
 cp -r frontend_v2/dist/* "$BUILD_V2_TARGET/"
+cp frontend_v2/index.html "$BUILD_V2_TARGET/"
 
 echo "✅ v2 Build complete!"
 echo "📂 Files in $BUILD_V2_TARGET:"
