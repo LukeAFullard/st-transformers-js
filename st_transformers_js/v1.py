@@ -49,26 +49,8 @@ def transformers_js_pipeline(
     dict or None
         Pipeline output as JSON, or None if still processing
     """
-    # Input validation
-    if not isinstance(inputs, (str, bytes, dict)):
-        raise TypeError(f"Input type not supported: {type(inputs)}. Must be str, bytes, or dict.")
-
-    # Convert bytes to base64 if needed
-    processed_inputs = inputs
-    mime_type = None
-    if isinstance(inputs, bytes):
-        try:
-            import magic
-            mime_type = magic.from_buffer(inputs, mime=True)
-        except Exception:
-            # Fallback to manual detection
-            if inputs.startswith(b'\x89PNG'):
-                mime_type = 'image/png'
-            elif inputs.startswith(b'\xff\xd8'):
-                mime_type = 'image/jpeg'
-            elif inputs.startswith(b'GIF'):
-                mime_type = 'image/gif'
-        processed_inputs = base64.b64encode(inputs).decode('utf-8')
+    from .helpers import process_inputs
+    processed_inputs, mime_type = process_inputs(inputs)
 
     # Call the component
     component_value = _component_func(

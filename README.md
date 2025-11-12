@@ -42,28 +42,31 @@ st.header("V2 Text Classification")
 text_input = st.text_area("Enter text to classify:", "I love Streamlit components!")
 if st.button("Classify Text"):
     if text_input:
-        # The component returns a dictionary with status, progress, and result
         result = transformers_js_pipeline_v2(
             model_name="Xenova/distilbert-base-uncased-finetuned-sst-2-english",
             pipeline_type="text-classification",
             inputs=text_input,
             key="text_clf_v2"
         )
-        # The result is automatically updated in the UI via state
         st.session_state.result_v2 = result
 
 # Display status and results from session state
 if "result_v2" in st.session_state and st.session_state.result_v2:
     res = st.session_state.result_v2
-    status = res.get("status")
-    
-    if status == "processing":
-        st.spinner("Running inference...")
-    elif status == "complete" and res.get("result"):
-        st.success("Classification complete!")
-        st.json(res["result"])
-    elif status == "error":
-        st.error(f"An error occurred: {res.get('error')}")
+    if res:
+        if res.status == "loading":
+            st.info(f"Loading model '{res.message}'...")
+        elif res.status in ["download", "init"]:
+            st.info(f"Downloading model... ({res.message})")
+            if res.progress:
+                st.progress(res.progress / 100)
+        elif res.status == "processing":
+            st.info("Running inference...")
+        elif res.status == "complete" and res.result:
+            st.success("Classification complete!")
+            st.json(res.result)
+        elif res.error:
+            st.error(f"An error occurred: {res.error}")
 ```
 
 ### Example 2: Image-to-Text (OCR)
@@ -92,16 +95,16 @@ if uploaded_file:
 # Display status and results
 if "result_ocr_v2" in st.session_state and st.session_state.result_ocr_v2:
     res = st.session_state.result_ocr_v2
-    status = res.get("status")
-
-    if "download" in status:
-        st.info(f"Downloading model... ({res.get('message', '')})")
-        st.progress(res.get('progress', 0) / 100)
-    elif status == "complete" and res.get("result"):
-        st.success("Extraction complete!")
-        st.json(res["result"])
-    elif status == "error":
-        st.error(f"An error occurred: {res.get('error')}")
+    if res:
+        if res.status in ["download", "init"]:
+            st.info(f"Downloading model... ({res.message})")
+            if res.progress:
+                st.progress(res.progress / 100)
+        elif res.status == "complete" and res.result:
+            st.success("Extraction complete!")
+            st.json(res.result)
+        elif res.error:
+            st.error(f"An error occurred: {res.error}")
 ```
 
 ### Example 3: Object Detection
@@ -133,30 +136,29 @@ if uploaded_file:
 # Display results and draw bounding boxes
 if "result_obj_v2" in st.session_state and st.session_state.result_obj_v2:
     res = st.session_state.result_obj_v2
-    status = res.get("status")
+    if res:
+        if res.status in ["download", "init"]:
+            st.info(f"Downloading model... ({res.message})")
+            if res.progress:
+                st.progress(res.progress / 100)
+        elif res.status == "complete" and res.result:
+            st.success("Object detection complete!")
 
-    if "download" in status:
-        st.info(f"Downloading model... ({res.get('message', '')})")
-        st.progress(res.get('progress', 0) / 100)
-    elif status == "complete" and res.get("result"):
-        st.success("Object detection complete!")
+            # Draw bounding boxes
+            draw = ImageDraw.Draw(image)
+            for detection in res.result:
+                box = detection["box"]
+                label = detection["label"]
+                score = round(detection["score"], 2)
 
-        # Draw bounding boxes
-        draw = ImageDraw.Draw(image)
-        for detection in res["result"]:
-            box = detection["box"]
-            label = detection["label"]
-            score = round(detection["score"], 2)
+                xmin, ymin, xmax, ymax = box.values()
+                draw.rectangle((xmin, ymin, xmax, ymax), outline="red", width=2)
+                draw.text((xmin, ymin), f"{label} ({score})", fill="red")
 
-            xmin, ymin, xmax, ymax = box.values()
-            draw.rectangle((xmin, ymin, xmax, ymax), outline="red", width=2)
-            draw.text((xmin, ymin), f"{label} ({score})", fill="red")
-
-        st.image(image, caption="Image with Bounding Boxes")
-        st.json(res["result"])
-    elif status == "error":
-        st.error(f"An error occurred: {res.get('error')}")
-
+            st.image(image, caption="Image with Bounding Boxes")
+            st.json(res.result)
+        elif res.error:
+            st.error(f"An error occurred: {res.error}")
 ```
 
 ---
@@ -165,14 +167,15 @@ if "result_obj_v2" in st.session_state and st.session_state.result_obj_v2:
 
 ### V2 Component (Recommended)
 
-`transformers_js_pipeline_v2(model_name, pipeline_type, inputs, config=None, key=None)`
+`transformers_js_pipeline_v2(model_name, pipeline_type, inputs, config=None, key=None, on_change=None)`
 
 - **`model_name`**: Hugging Face model identifier.
 - **`pipeline_type`**: The task pipeline to use (e.g., "object-detection").
 - **`inputs`**: Input data (text string or image bytes).
 - **`config`**: Optional dictionary for pipeline configuration.
 - **`key`**: A unique Streamlit key for the component instance.
-- **Returns**: A dictionary containing `status`, `message`, `progress`, `result`, and/or `error`.
+- **`on_change`**: An optional callback function that will be called when the component's state changes.
+- **Returns**: A `BidiComponentResult` object with the component's state.
 
 ### V1 Component (Legacy)
 
@@ -202,13 +205,14 @@ if "result_obj_v2" in st.session_state and st.session_state.result_obj_v2:
 ### Setup Instructions
 
 1.  **Install Dependencies:** `pip install -e .`
-2.  **Run V2 Dev Server:**
+2.  **Build Frontend Assets:** `./build_script.sh`
+3.  **Run V2 Dev Server (Optional):**
     ```bash
     cd frontend_v2
     npm install
-    npm run dev  # Runs on port 5174
+    npm run dev
     ```
-3.  **Run Demo App:** In a new terminal, run `streamlit run demo_app_v2.py` (with `STREAMLIT_COMPONENT_DEV_MODE=1` for hot-reloading).
+4.  **Run Demo App:** `streamlit run demo_app_v2.py`
 
 ---
 *For legacy V1 examples, license, and contribution guidelines, see the original documentation sections.*
