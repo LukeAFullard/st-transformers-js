@@ -49,22 +49,8 @@ def transformers_js_pipeline_v2(
     BidiComponentResult
         Component result with status, progress, result, and error attributes
     """
-    # Process inputs (keep existing logic)
-    processed_inputs = inputs
-    mime_type = None
-
-    if isinstance(inputs, bytes):
-        try:
-            import magic
-            mime_type = magic.from_buffer(inputs, mime=True)
-        except Exception:
-            if inputs.startswith(b'\x89PNG'):
-                mime_type = 'image/png'
-            elif inputs.startswith(b'\xff\xd8'):
-                mime_type = 'image/jpeg'
-            elif inputs.startswith(b'GIF'):
-                mime_type = 'image/gif'
-        processed_inputs = base64.b64encode(inputs).decode('utf-8')
+    from .helpers import process_inputs
+    processed_inputs, mime_type = process_inputs(inputs)
 
     component_data = {
         "model_name": model_name,
