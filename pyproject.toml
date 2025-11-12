@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "st-transformers-js"
-version = "0.1.0"
+version = "0.2.0"
 description = "Offline Streamlit component for Hugging Face Transformers.js"
 readme = "README.md"
 requires-python = ">=3.7"
@@ -39,9 +39,7 @@ where = ["."]
 include = ["st_transformers_js*"]
 
 [tool.setuptools.package-data]
-"st_transformers_js" = ["frontend/build/**"]
+"st_transformers_js" = ["frontend_v1/**", "frontend_v2/dist/**"]
 
-[tool.streamlit]
-# This is where you're supposed to define your component's frontend assets.
-# By default, this is all files under a directory called "frontend/build".
-assets_dir = "st_transformers_js/frontend/build"
+[tool.streamlit.components.st_transformers_js_v2]
+asset_dir = "st_transformers_js/frontend_v2/dist"

@@ -1,7 +1,7 @@
 import unittest
 import base64
 from unittest.mock import patch, MagicMock
-from st_transformers_js import transformers_js_pipeline
+from st_transformers_js import transformers_js_pipeline_v1 as transformers_js_pipeline
 
 # A minimal PNG header
 PNG_HEADER = b'\x89PNG\r\n\x1a\n'
@@ -10,7 +10,7 @@ JPEG_HEADER = b'\xff\xd8'
 
 class TestComponent(unittest.TestCase):
 
-    @patch('st_transformers_js._component_func')
+    @patch('st_transformers_js.v1.components.declare_component')
     def test_byte_input_encoding_with_magic(self, mock_component_func):
         """
         Test that byte inputs are correctly encoded and mime_type is set by python-magic.
@@ -37,7 +37,7 @@ class TestComponent(unittest.TestCase):
         self.assertEqual(called_args.get('inputs'), expected_base64)
         self.assertEqual(called_args.get('mime_type'), "image/png")
 
-    @patch('st_transformers_js._component_func')
+    @patch('st_transformers_js.v1.components.declare_component')
     def test_jpeg_mime_type_fallback(self, mock_component_func):
         """
         Test that JPEG mime type is correctly identified using the fallback mechanism.
@@ -58,7 +58,7 @@ class TestComponent(unittest.TestCase):
         called_args = mock_component_func.call_args.kwargs
         self.assertEqual(called_args.get('mime_type'), "image/jpeg")
 
-    @patch('st_transformers_js._component_func')
+    @patch('st_transformers_js.v1.components.declare_component')
     def test_string_input_passthrough(self, mock_component_func):
         """
         Test that string inputs are passed through without modification.
