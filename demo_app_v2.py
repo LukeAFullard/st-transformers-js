@@ -23,6 +23,9 @@ with st.container():
     classify_btn = st.button("Classify Text", key="classify_btn_v2")
 
     if classify_btn and text_input:
+        # Clear previous results before running
+        st.session_state.pop("text_clf_v2", None)
+
         # The component now returns a result object with attributes
         result = transformers_js_pipeline_v2(
             model_name="Xenova/distilbert-base-uncased-finetuned-sst-2-english",
@@ -69,6 +72,9 @@ with st.container():
     if uploaded_file_ocr:
         st.image(uploaded_file_ocr, caption="Uploaded Document")
         if st.button("Extract Text", key="ocr_btn_v2"):
+            # Clear previous results before running
+            st.session_state.pop("ocr_v2", None)
+
             img_bytes = uploaded_file_ocr.read()
 
             result_ocr = transformers_js_pipeline_v2(
@@ -110,6 +116,9 @@ with st.container():
         st.image(image, caption="Uploaded Image for Detection")
 
         if st.button("Detect Objects", key="obj_btn_v2"):
+            # Clear previous results before running
+            st.session_state.pop("obj_detect_v2", None)
+
             img_bytes = uploaded_file_obj.getvalue()
 
             result_obj = transformers_js_pipeline_v2(
