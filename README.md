@@ -133,51 +133,63 @@ transformers_js_pipeline(
 ### Project Structure
 
 ```
-st_transformers_js/
-│
-├─ frontend/
-│   ├─ index.html
-│   └─ transformers.min.js   ← Download from CDN
-│   └─ build/                     ← Created during build
-│
-├─ st_transformers_js/
-│   └─ __init__.py
-│
-├─ setup.py
-├─ pyproject.toml
-├─ MANIFEST.in
-└─ README.md
+.
+├── frontend_v2/            # v2 component frontend (Vite + TypeScript)
+├── st_transformers_js/
+│   ├── __init__.py         # Main package init
+│   ├── v1.py               # v1 Python component wrapper
+│   ├── v2.py               # v2 Python component wrapper
+│   ├── frontend_v1/        # v1 component frontend (static HTML)
+│   └── frontend_v2/dist/   # v2 frontend build artifacts
+├── tests/
+├── demo_app.py             # v1 demo
+├── demo_app_v2.py          # v2 demo
+├── build_script.sh         # Build script for both frontends
+├── setup.py
+└── pyproject.toml
 ```
 
 ### Setup Instructions
 
-1. **Download transformers.min.js**
-
-Download the bundled version from:
-```
-https://cdn.jsdelivr.net/npm/@xenova/transformers@3.2.0/dist/transformers.min.js
-```
-
-Place it in `frontend/transformers.min.js`
-
-2. **Prepare the build directory**
-
-```bash
-# Build will be created automatically by build script
-bash build_script.sh
-```
-
-3. **Install in development mode**
+1. **Install Python dependencies**
 
 ```bash
 pip install -e .
 ```
 
-4. **Test the component**
+2. **Run the v1 component in development mode**
 
+The v1 component is static and doesn't require a dev server. You can run the demo directly:
 ```bash
 streamlit run demo_app.py
 ```
+*To enable hot-reloading for v1, you would need to set up a simple static file server.*
+
+3. **Run the v2 component in development mode**
+
+The v2 component uses Vite for hot-reloading.
+
+- **Start the dev server (port 5174):**
+```bash
+cd frontend_v2
+npm install
+npm run dev
+```
+
+- **In a separate terminal, run the demo app:**
+```bash
+# Make sure STREAMLIT_COMPONENT_DEV_MODE is set
+export STREAMLIT_COMPONENT_DEV_MODE=1
+streamlit run demo_app_v2.py
+```
+
+### Building for Production
+
+To build both frontends and prepare the package for distribution, run the build script:
+```bash
+bash build_script.sh
+```
+This will build the v2 frontend and copy all necessary static assets into the `st_transformers_js` directory.
 
 ## 📦 Building for Distribution
 

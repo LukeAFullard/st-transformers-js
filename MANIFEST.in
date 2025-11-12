@@ -1,2 +1,5 @@
+# Include the v1 frontend build artifacts
 recursive-include st_transformers_js/frontend_v1 *
+
+# Include the v2 frontend build artifacts
 recursive-include st_transformers_js/frontend_v2/dist *
