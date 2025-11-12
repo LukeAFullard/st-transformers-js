@@ -32,7 +32,6 @@ echo "🚀 Building st-transformers-js v2 component..."
 
 # Install dependencies and build frontend
 pushd frontend_v2
-npm install
 npm ci
 npm run build
 popd

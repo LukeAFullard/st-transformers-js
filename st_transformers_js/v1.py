@@ -19,7 +19,7 @@ if not _RELEASE:
 else:
     # For release, Streamlit will serve the assets from the package's asset_dir
     parent_dir = os.path.dirname(os.path.abspath(__file__))
-    build_dir = os.path.join(parent_dir, "frontend/build")
+    build_dir = os.path.join(parent_dir, "frontend_v1/build")
     _component_func = components.declare_component(
         COMPONENT_NAME,
         path=build_dir,

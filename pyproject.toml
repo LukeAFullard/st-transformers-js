@@ -31,6 +31,9 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/yourusername/st-transformers-js"
 Documentation = "https://github.com/yourusername/st-transformers-js#readme"
+
+[project.optional-dependencies]
+mime-detection = ["python-magic>=0.4.0"]
 Repository = "https://github.com/yourusername/st-transformers-js"
 "Bug Tracker" = "https://github.com/yourusername/st-transformers-js/issues"
 
