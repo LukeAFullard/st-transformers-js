@@ -8,7 +8,10 @@ __pycache__/
 
 # Frontend
 node_modules/
-**/build/
+
+# Built component artifacts that get included in package
+st_transformers_js/frontend_v1/build/
+st_transformers_js/frontend_v2/dist/
 
 # Don't ignore the downloaded transformers.js
 !frontend/transformers.min.js

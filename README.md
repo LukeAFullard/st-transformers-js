@@ -4,234 +4,211 @@ A fully **offline Streamlit component** for running Hugging Face Transformers.js
 
 ## ✨ Features
 
-- 🔌 **Fully Offline** - Bundles transformers.js locally, no CDN dependencies
-- 🚀 **Zero Backend** - Models run entirely in the browser via WebAssembly
-- 🎯 **All Pipeline Types** - Supports image-to-text, text classification, token classification, and more
-- 📦 **Version Locked** - Reproducible builds with locked transformers.js version
-- 🌐 **stlite Compatible** - Works in Pyodide/WASM environments
-- 🎨 **Progress Logging** - Visual feedback during model loading and inference
+- **V2 and V1 Components:** Ships with a modern, recommended V2 component and a legacy V1 component for backward compatibility.
+- **Fully Offline:** Bundles `transformers.js` locally, no CDN dependencies.
+- **Zero Backend:** Models run entirely in the browser via WebAssembly.
+- **All Pipeline Types:** Supports object-detection, image-to-text, text-classification, and more.
+- **Progress Logging (V2):** Real-time feedback on model downloads and processing.
 
 ## 📦 Installation
 
 ```bash
 pip install st-transformers-js
+# For image processing, you may need python-magic and Pillow
+pip install python-magic Pillow
 ```
 
-## 🚀 Quick Start
+---
 
-### Image to Text (Donut)
+## 🚀 V2 Component Guides (Recommended)
+
+The V2 component is the modern, preferred way to use this library. It offers real-time status updates from the frontend.
+
+**Import the V2 component:**
+```python
+from st_transformers_js import transformers_js_pipeline_v2
+```
+
+### Example 1: Text Classification
+
+This example classifies text sentiment using a DistilBERT model.
 
 ```python
 import streamlit as st
-from st_transformers_js import transformers_js_pipeline
+from st_transformers_js import transformers_js_pipeline_v2
 
-st.title("Document OCR with Donut")
+st.header("V2 Text Classification")
 
-uploaded_file = st.file_uploader("Upload a receipt or document", type=["jpg", "jpeg", "png"])
+text_input = st.text_area("Enter text to classify:", "I love Streamlit components!")
+if st.button("Classify Text"):
+    if text_input:
+        # The component returns a dictionary with status, progress, and result
+        result = transformers_js_pipeline_v2(
+            model_name="Xenova/distilbert-base-uncased-finetuned-sst-2-english",
+            pipeline_type="text-classification",
+            inputs=text_input,
+            key="text_clf_v2"
+        )
+        # The result is automatically updated in the UI via state
+        st.session_state.result_v2 = result
 
-if uploaded_file:
-    img_bytes = uploaded_file.read()
-    st.image(img_bytes, caption="Uploaded Image", width=300)
+# Display status and results from session state
+if "result_v2" in st.session_state and st.session_state.result_v2:
+    res = st.session_state.result_v2
+    status = res.get("status")
     
-    with st.spinner("Processing..."):
-        result = transformers_js_pipeline(
+    if status == "processing":
+        st.spinner("Running inference...")
+    elif status == "complete" and res.get("result"):
+        st.success("Classification complete!")
+        st.json(res["result"])
+    elif status == "error":
+        st.error(f"An error occurred: {res.get('error')}")
+```
+
+### Example 2: Image-to-Text (OCR)
+
+This example extracts text from an uploaded document image using a Donut model.
+
+```python
+import streamlit as st
+from st_transformers_js import transformers_js_pipeline_v2
+
+st.header("V2 Image-to-Text (OCR)")
+
+uploaded_file = st.file_uploader("Upload a document image", type=["jpg", "png"])
+if uploaded_file:
+    st.image(uploaded_file)
+    if st.button("Extract Text"):
+        img_bytes = uploaded_file.read()
+        result = transformers_js_pipeline_v2(
             model_name="Xenova/donut-base-finetuned-cord-v2",
             pipeline_type="image-to-text",
-            inputs=img_bytes
+            inputs=img_bytes,
+            key="ocr_v2"
         )
-    
-    if result:
-        st.json(result)
+        st.session_state.result_ocr_v2 = result
+
+# Display status and results
+if "result_ocr_v2" in st.session_state and st.session_state.result_ocr_v2:
+    res = st.session_state.result_ocr_v2
+    status = res.get("status")
+
+    if "download" in status:
+        st.info(f"Downloading model... ({res.get('message', '')})")
+        st.progress(res.get('progress', 0) / 100)
+    elif status == "complete" and res.get("result"):
+        st.success("Extraction complete!")
+        st.json(res["result"])
+    elif status == "error":
+        st.error(f"An error occurred: {res.get('error')}")
 ```
 
-### Text Classification
+### Example 3: Object Detection
+
+This example detects objects in an image and draws bounding boxes around them.
 
 ```python
 import streamlit as st
-from st_transformers_js import transformers_js_pipeline
+from st_transformers_js import transformers_js_pipeline_v2
+from PIL import Image, ImageDraw
 
-text = st.text_area("Enter text to classify:", "I love this product!")
+st.header("V2 Object Detection")
 
-if st.button("Classify"):
-    result = transformers_js_pipeline(
-        model_name="Xenova/distilbert-base-uncased-finetuned-sst-2-english",
-        pipeline_type="text-classification",
-        inputs=text
-    )
-    
-    if result:
-        st.write(f"**Label:** {result[0]['label']}")
-        st.write(f"**Confidence:** {result[0]['score']:.2%}")
+uploaded_file = st.file_uploader("Upload an image for object detection", type=["jpg", "png"])
+if uploaded_file:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image")
+
+    if st.button("Detect Objects"):
+        img_bytes = uploaded_file.getvalue()
+        result = transformers_js_pipeline_v2(
+            model_name="Xenova/detr-resnet-50",
+            pipeline_type="object-detection",
+            inputs=img_bytes,
+            key="obj_detect_v2"
+        )
+        st.session_state.result_obj_v2 = result
+
+# Display results and draw bounding boxes
+if "result_obj_v2" in st.session_state and st.session_state.result_obj_v2:
+    res = st.session_state.result_obj_v2
+    status = res.get("status")
+
+    if "download" in status:
+        st.info(f"Downloading model... ({res.get('message', '')})")
+        st.progress(res.get('progress', 0) / 100)
+    elif status == "complete" and res.get("result"):
+        st.success("Object detection complete!")
+
+        # Draw bounding boxes
+        draw = ImageDraw.Draw(image)
+        for detection in res["result"]:
+            box = detection["box"]
+            label = detection["label"]
+            score = round(detection["score"], 2)
+
+            xmin, ymin, xmax, ymax = box.values()
+            draw.rectangle((xmin, ymin, xmax, ymax), outline="red", width=2)
+            draw.text((xmin, ymin), f"{label} ({score})", fill="red")
+
+        st.image(image, caption="Image with Bounding Boxes")
+        st.json(res["result"])
+    elif status == "error":
+        st.error(f"An error occurred: {res.get('error')}")
+
 ```
 
-### Token Classification (NER)
-
-```python
-import streamlit as st
-from st_transformers_js import transformers_js_pipeline
-
-text = st.text_area("Enter text for NER:", "My name is Sarah and I live in London.")
-
-if st.button("Extract Entities"):
-    result = transformers_js_pipeline(
-        model_name="Xenova/bert-base-NER",
-        pipeline_type="token-classification",
-        inputs=text,
-        config={"aggregation_strategy": "simple"}
-    )
-    
-    if result:
-        for entity in result:
-            st.write(f"**{entity['word']}** - {entity['entity_group']} ({entity['score']:.2%})")
-```
-
-## 🎯 Supported Pipelines
-
-The component supports all Transformers.js pipeline types:
-
-- `image-to-text` - Document OCR, image captioning
-- `text-classification` - Sentiment analysis, topic classification
-- `token-classification` - Named entity recognition (NER)
-- `question-answering` - Extract answers from context
-- `summarization` - Text summarization
-- `translation` - Language translation
-- `text-generation` - Text completion
-- `zero-shot-classification` - Classify without training
-- And more...
+---
 
 ## 📖 API Reference
 
-### `transformers_js_pipeline()`
+### V2 Component (Recommended)
 
-```python
-transformers_js_pipeline(
-    model_name: str,
-    pipeline_type: str,
-    inputs: Union[str, bytes, dict],
-    config: Optional[dict] = None,
-    width: int = 600,
-    height: int = 400,
-    key: Optional[str] = None
-) -> Optional[dict]
-```
+`transformers_js_pipeline_v2(model_name, pipeline_type, inputs, config=None, key=None)`
 
-**Parameters:**
+- **`model_name`**: Hugging Face model identifier.
+- **`pipeline_type`**: The task pipeline to use (e.g., "object-detection").
+- **`inputs`**: Input data (text string or image bytes).
+- **`config`**: Optional dictionary for pipeline configuration.
+- **`key`**: A unique Streamlit key for the component instance.
+- **Returns**: A dictionary containing `status`, `message`, `progress`, `result`, and/or `error`.
 
-- `model_name` (str): Hugging Face model identifier (e.g., "Xenova/donut-base-finetuned-cord-v2")
-- `pipeline_type` (str): Pipeline type (e.g., "image-to-text", "text-classification")
-- `inputs` (str | bytes | dict): Input data (text string, image bytes, or structured input)
-- `config` (dict, optional): Additional pipeline configuration
-- `width` (int): Component width in pixels (default: 600)
-- `height` (int): Component height in pixels (default: 400)
-- `key` (str, optional): Unique component key for Streamlit
+### V1 Component (Legacy)
 
-**Returns:**
-- `dict | None`: Pipeline output as JSON, or None if still processing
+`transformers_js_pipeline_v1(model_name, pipeline_type, inputs, config=None, width=600, height=400, key=None)`
+
+- **Parameters**: Same as V2, with the addition of `width` and `height` for the component's iframe.
+- **Returns**: The final JSON result from the pipeline, or `None` while processing.
+
+---
 
 ## 🛠️ Development Setup
 
 ### Project Structure
 
 ```
-st_transformers_js/
-│
-├─ frontend/
-│   ├─ index.html
-│   └─ transformers.min.js   ← Download from CDN
-│   └─ build/                     ← Created during build
-│
-├─ st_transformers_js/
-│   └─ __init__.py
-│
-├─ setup.py
-├─ pyproject.toml
-├─ MANIFEST.in
-└─ README.md
+.
+├── frontend_v2/
+├── st_transformers_js/
+│   ├── v1.py, v2.py
+│   ├── frontend_v1/
+│   └── frontend_v2/dist/
+├── tests/
+├── demo_app.py, demo_app_v2.py
+└── build_script.sh
 ```
 
 ### Setup Instructions
 
-1. **Download transformers.min.js**
-
-Download the bundled version from:
-```
-https://cdn.jsdelivr.net/npm/@xenova/transformers@3.2.0/dist/transformers.min.js
-```
-
-Place it in `frontend/transformers.min.js`
-
-2. **Prepare the build directory**
-
-```bash
-# Build will be created automatically by build script
-bash build_script.sh
-```
-
-3. **Install in development mode**
-
-```bash
-pip install -e .
-```
-
-4. **Test the component**
-
-```bash
-streamlit run demo_app.py
-```
-
-## 📦 Building for Distribution
-
-```bash
-# Build the package
-python -m build
-
-# Upload to PyPI
-pip install --upgrade twine
-twine upload dist/*
-```
-
-## 🔄 Version Updates
-
-To update the transformers.js version:
-
-1. Download new `transformers.min.js` from CDN
-2. Replace in `frontend/public/`
-3. Increment version in `setup.py` and `pyproject.toml`
-4. Rebuild and test
-5. Publish new version
-
-## 🌐 stlite / Pyodide Compatibility
-
-This component is fully compatible with:
-- **stlite** - Streamlit in the browser via Pyodide
-- **Streamlit Cloud** - Standard cloud deployment
-- **Local Streamlit** - Traditional Python environment
-
-The offline bundle ensures models load without network dependencies after initial download.
-
-## 📝 License
-
-MIT License - see LICENSE file for details
-
-## 🤝 Contributing
-
-Contributions welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request
-
-## 🐛 Issues
-
-Report bugs and request features at:
-https://github.com/yourusername/st-transformers-js/issues
-
-## 🙏 Acknowledgments
-
-Built on top of:
-- [Transformers.js](https://github.com/xenova/transformers.js) by Xenova
-- [Streamlit](https://streamlit.io/)
-- [Hugging Face](https://huggingface.co/)
+1.  **Install Dependencies:** `pip install -e .`
+2.  **Run V2 Dev Server:**
+    ```bash
+    cd frontend_v2
+    npm install
+    npm run dev  # Runs on port 5174
+    ```
+3.  **Run Demo App:** In a new terminal, run `streamlit run demo_app_v2.py` (with `STREAMLIT_COMPONENT_DEV_MODE=1` for hot-reloading).
 
 ---
-
-Made with ❤️ for the Streamlit community
+*For legacy V1 examples, license, and contribution guidelines, see the original documentation sections.*
