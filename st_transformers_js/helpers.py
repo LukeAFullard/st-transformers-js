@@ -5,15 +5,15 @@ def _get_mime_type(data: bytes) -> Optional[str]:
     """
     Get the MIME type of a byte string using magic numbers.
     """
-    if data.startswith(b'\x89PNG\r\n\x1a\n'):
+    if len(data) >= 8 and data.startswith(b'\x89PNG\r\n\x1a\n'):
         return 'image/png'
-    if data.startswith(b'\xff\xd8'):
+    if len(data) >= 2 and data.startswith(b'\xff\xd8'):
         return 'image/jpeg'
-    if data.startswith(b'GIF87a') or data.startswith(b'GIF89a'):
+    if len(data) >= 6 and (data.startswith(b'GIF87a') or data.startswith(b'GIF89a')):
         return 'image/gif'
-    if data.startswith(b'BM'):
+    if len(data) >= 2 and data.startswith(b'BM'):
         return 'image/bmp'
-    if data.startswith(b'RIFF') and data[8:12] == b'WEBP':
+    if len(data) >= 12 and data.startswith(b'RIFF') and data[8:12] == b'WEBP':
         return 'image/webp'
     return None
 

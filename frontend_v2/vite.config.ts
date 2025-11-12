@@ -6,12 +6,7 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
-      input: resolve(__dirname, 'src/main.ts'),
-      output: {
-        entryFileNames: 'main.js',
-        format: 'iife',
-        name: 'StreamlitTransformers',
-      },
+      input: resolve(__dirname, 'index.html'),
     },
   },
 })
