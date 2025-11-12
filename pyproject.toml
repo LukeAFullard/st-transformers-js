@@ -31,18 +31,18 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/yourusername/st-transformers-js"
 Documentation = "https://github.com/yourusername/st-transformers-js#readme"
+Repository = "https://github.com/yourusername/st-transformers-js"
+"Bug Tracker" = "https://github.com/yourusername/st-transformers-js/issues"
 
 [project.optional-dependencies]
 mime-detection = ["python-magic>=0.4.0"]
-Repository = "https://github.com/yourusername/st-transformers-js"
-"Bug Tracker" = "https://github.com/yourusername/st-transformers-js/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["st_transformers_js*"]
 
 [tool.setuptools.package-data]
-"st_transformers_js" = ["frontend_v1/**", "frontend_v2/dist/**"]
+"st_transformers_js" = ["frontend_v1/build/**", "frontend_v2/dist/**"]
 
 [tool.streamlit.components.st_transformers_js_v2]
 asset_dir = "st_transformers_js/frontend_v2/dist"

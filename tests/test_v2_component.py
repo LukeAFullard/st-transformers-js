@@ -18,7 +18,7 @@ class TestComponentV2(unittest.TestCase):
         transformers_js_pipeline_v2(text=test_text, key="test_v2")
 
         # Assert
-        mock_component_func.assert_called_once_with(text=test_text, key="test_v2", default=None)
+        mock_component_func.assert_called_once_with(data={"text": test_text}, key="test_v2")
 
 if __name__ == '__main__':
     unittest.main()

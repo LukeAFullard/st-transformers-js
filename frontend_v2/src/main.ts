@@ -1,22 +1,21 @@
-import type { Component } from "@streamlit/component-v2-lib";
+import { Component } from "@streamlit/component-v2-lib";
 
-export type ComponentData = {
-  text: string;
-};
+const MyComponent: Component = (args) => {
+    const { data, setStateValue, parentElement } = args;
 
-const MyComponent: Component<any, ComponentData> = (args) => {
-  const { parentElement, data } = args;
+    const rootElement = document.createElement("div");
+    parentElement.appendChild(rootElement);
 
-  const rootElement = parentElement.querySelector(".component-root");
-  if (!rootElement) {
-    throw new Error("Unexpected: root element not found");
-  }
-
-  // Set dynamic content
-  const heading = rootElement.querySelector("h1");
-  if (heading) {
+    const heading = document.createElement("h1");
     heading.textContent = `Hello, ${data.text}!`;
-  }
+    rootElement.appendChild(heading);
+
+    const button = document.createElement("button");
+    button.textContent = "Send message to Python";
+    button.onclick = () => {
+        setStateValue({ message: "Hello from the frontend!" });
+    };
+    rootElement.appendChild(button);
 };
 
 export default MyComponent;
