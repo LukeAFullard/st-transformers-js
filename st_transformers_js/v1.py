@@ -50,7 +50,26 @@ def transformers_js_pipeline(
         Pipeline output as JSON, or None if still processing
     """
     from .helpers import process_inputs
-    processed_inputs, mime_type = process_inputs(inputs)
+
+    # Validate required parameters
+    if not model_name or not pipeline_type:
+        raise ValueError("model_name and pipeline_type are required")
+
+    # Process inputs with error handling
+    try:
+        processed_inputs, mime_type = process_inputs(inputs)
+    except TypeError as e:
+        raise TypeError(
+            f"Invalid input type for transformers pipeline. {str(e)}"
+        ) from e
+    except ValueError as e:
+        raise ValueError(
+            f"Failed to process pipeline inputs. {str(e)}"
+        ) from e
+    except Exception as e:
+        raise RuntimeError(
+            f"Unexpected error processing inputs: {str(e)}"
+        ) from e
 
     # Call the component
     component_value = _component_func(

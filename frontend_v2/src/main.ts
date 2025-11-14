@@ -29,7 +29,7 @@ interface ComponentStatus extends ComponentState {
 /**
  * Main component function.
  */
-const MyComponent: Component<ComponentStatus, ComponentData> = (args) => {
+const TransformersComponent: Component<ComponentStatus, ComponentData> = (args) => {
     const { data, setStateValue, parentElement } = args;
 
     // --- UI Setup ---
@@ -42,51 +42,72 @@ const MyComponent: Component<ComponentStatus, ComponentData> = (args) => {
     root.append(statusEl, progressEl);
     parentElement.appendChild(root);
 
-    // --- State Update Function ---
-    const updateStatus = (status: string, message: string, progress?: number) => {
-        statusEl.textContent = message;
-        if (progress !== undefined) {
-            progressEl.value = progress;
+    // --- Unified State Update Function ---
+    const updateState = (newState: Partial<ComponentStatus>) => {
+        // Update UI
+        if (newState.message) {
+            statusEl.textContent = newState.message;
+        }
+        if (newState.progress !== undefined) {
+            progressEl.value = newState.progress;
             progressEl.style.display = "block";
-        } else {
+        } else if (newState.progress === undefined) {
+            // Hide progress bar if progress is explicitly set to undefined
             progressEl.style.display = "none";
         }
-        // Set state values individually, as expected by component-v2-lib v0.1.0
-        setStateValue("status", status);
-        setStateValue("message", message);
-        setStateValue("progress", progress);
+
+        // Send state back to Python for each key
+        for (const [key, value] of Object.entries(newState)) {
+            setStateValue(key as keyof ComponentStatus, value);
+        }
     };
 
     // --- Main Pipeline Logic ---
     const runPipeline = async () => {
         try {
-            updateStatus("loading", `Loading model: ${data.model_name}`);
+            updateState({
+                status: "loading",
+                message: `Loading model: ${data.model_name}`
+            });
+
             const pipe = await pipeline(data.pipeline_type, data.model_name, {
                 progress_callback: (progress: any) => {
-                    updateStatus(
-                        progress.status,
-                        `[${progress.status}] ${progress.file} (${Math.round(progress.progress)}%)`,
-                        progress.progress
-                    );
+                    updateState({
+                        status: progress.status,
+                        message: `[${progress.status}] ${progress.file} (${Math.round(progress.progress)}%)`,
+                        progress: progress.progress,
+                    });
                 },
             });
 
-            updateStatus("processing", "Running inference...");
+            updateState({
+                status: "processing",
+                message: "Running inference...",
+                progress: undefined, // Hide progress bar
+            });
+
             let processedInputs = data.inputs;
             if (data.mime_type && data.mime_type.startsWith("image/")) {
-                // Handle image inputs (decode base64)
                 processedInputs = `data:${data.mime_type};base64,${data.inputs}`;
             }
 
             const result = await pipe(processedInputs, data.config);
 
-            updateStatus("complete", "Inference complete!");
-            setStateValue("result", result);
+            updateState({
+                status: "complete",
+                message: "Inference complete!",
+                result: result,
+                progress: undefined, // Hide progress bar
+            });
 
         } catch (error: any) {
             console.error("Pipeline error:", error);
-            updateStatus("error", `Error: ${error.message}`);
-            setStateValue("error", error.message);
+            updateState({
+                status: "error",
+                message: `Error: ${error.message}`,
+                error: error.message,
+                progress: undefined, // Hide progress bar
+            });
         }
     };
 
@@ -94,4 +115,4 @@ const MyComponent: Component<ComponentStatus, ComponentData> = (args) => {
     runPipeline();
 };
 
-export default MyComponent;
+export default TransformersComponent;

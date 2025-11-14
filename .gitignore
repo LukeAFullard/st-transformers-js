@@ -15,3 +15,4 @@ st_transformers_js/frontend_v2/dist/
 
 # Don't ignore the downloaded transformers.js
 !st_transformers_js/frontend_v1/build/transformers.min.js
+!st_transformers_js/frontend_v1/build/streamlit-component-lib.min.js

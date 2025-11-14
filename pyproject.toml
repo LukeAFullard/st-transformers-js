@@ -1,48 +1,57 @@
 [build-system]
-requires = ["setuptools>=45", "wheel"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "st-transformers-js"
-dynamic = ["version"]
+version = "0.2.0"
 description = "Offline Streamlit component for Hugging Face Transformers.js"
 readme = "README.md"
-requires-python = ">=3.7"
-license = "MIT"
+requires-python = ">=3.8"
+license = {text = "MIT"}
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Joshua Carroll", email = "josh@joshuacarroll.me"}
 ]
 keywords = ["streamlit", "transformers", "machine-learning", "huggingface"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Framework :: Streamlit",
 ]
 dependencies = [
-    "streamlit>=1.0.0",
+    "streamlit>=1.28.0,<2.0.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/st-transformers-js"
-Documentation = "https://github.com/yourusername/st-transformers-js#readme"
-Repository = "https://github.com/yourusername/st-transformers-js"
-"Bug Tracker" = "https://github.com/yourusername/st-transformers-js/issues"
+Homepage = "https://github.com/joshuac-ist/st-transformers-js"
+Documentation = "https://github.com/joshuac-ist/st-transformers-js#readme"
+Repository = "https://github.com/joshuac-ist/st-transformers-js"
+"Bug Tracker" = "https://github.com/joshuac-ist/st-transformers-js/issues"
 
 [project.optional-dependencies]
-mime-detection = ["python-magic>=0.4.0"]
+mime-detection = ["python-magic>=0.4.0", "Pillow>=9.0.0"]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["st_transformers_js*"]
+[tool.setuptools]
+packages = ["st_transformers_js"]
 
 [tool.setuptools.package-data]
-"st_transformers_js" = ["frontend_v1/build/**", "frontend_v2/dist/**"]
+st_transformers_js = [
+    "frontend_v1/build/*",
+    "frontend_v2/dist/*",
+]
 
 [tool.streamlit.components.st_transformers_js_v2]
 asset_dir = "st_transformers_js/frontend_v2/dist"
