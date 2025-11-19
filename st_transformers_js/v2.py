@@ -24,7 +24,6 @@ def transformers_js_pipeline_v2(
     inputs: Union[str, bytes, dict],
     config: Optional[dict] = None,
     key: Optional[str] = None,
-    on_change: Optional[Callable] = None,
 ) -> Optional[dict]:
     """
     Run a transformers.js pipeline in the browser (v2 component).
@@ -41,13 +40,11 @@ def transformers_js_pipeline_v2(
         Additional pipeline configuration
     key : str, optional
         Unique key for the component instance
-    on_change : callable, optional
-        Callback function when inference completes
 
     Returns
     -------
-    BidiComponentResult
-        Component result with status, progress, result, and error attributes
+    dict or None
+        A dictionary with the component's state (status, progress, etc.)
     """
     from .helpers import process_inputs
 
@@ -79,16 +76,6 @@ def transformers_js_pipeline_v2(
         "config": config or {},
     }
 
-    # Declare all state callbacks
-    callback = on_change or (lambda: None)
-
-    return _component_func(
-        data=component_data,
-        key=key,
-        on_status_change=callback,
-        on_progress_change=callback,
-        on_result_change=callback,
-        on_error_change=callback,
-    )
+    return _component_func(data=component_data, key=key)
 
 __all__ = ["transformers_js_pipeline_v2"]
