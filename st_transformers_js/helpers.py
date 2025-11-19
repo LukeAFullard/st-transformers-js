@@ -1,9 +1,9 @@
 import base64
 from typing import Union, Tuple, Optional
 
-def _get_mime_type(data: bytes) -> Optional[str]:
+def _get_mime_type_from_magic_numbers(data: bytes) -> Optional[str]:
     """
-    Get the MIME type of a byte string using magic numbers.
+    Fallback MIME type detection using magic numbers for common image formats.
     """
     if len(data) >= 8 and data.startswith(b'\x89PNG\r\n\x1a\n'):
         return 'image/png'
@@ -15,7 +15,26 @@ def _get_mime_type(data: bytes) -> Optional[str]:
         return 'image/bmp'
     if len(data) >= 12 and data.startswith(b'RIFF') and data[8:12] == b'WEBP':
         return 'image/webp'
+    if len(data) >= 4 and (data.startswith(b'\x49\x49\x2A\x00') or data.startswith(b'\x4D\x4D\x00\x2A')):
+        return 'image/tiff'
+    if len(data) >= 4 and data.startswith(b'\x00\x00\x01\x00'):
+        return 'image/x-icon'
     return None
+
+def _get_mime_type_with_magic(data: bytes) -> Optional[str]:
+    """
+    Try to get MIME type using python-magic, handling import errors gracefully.
+    """
+    try:
+        import magic
+        return magic.from_buffer(data, mime=True)
+    except ImportError:
+        # python-magic is not installed
+        return None
+    except Exception as e:
+        # Other unexpected errors from the magic library
+        print(f"An error occurred with python-magic: {e}")
+        return None
 
 def process_inputs(inputs: Union[str, bytes, dict]) -> Tuple[Union[str, dict], Optional[str]]:
     """
@@ -28,11 +47,11 @@ def process_inputs(inputs: Union[str, bytes, dict]) -> Tuple[Union[str, dict], O
     mime_type = None
 
     if isinstance(inputs, bytes):
-        try:
-            import magic
-            mime_type = magic.from_buffer(inputs, mime=True)
-        except Exception:
-            mime_type = _get_mime_type(inputs)
+        # Try python-magic first
+        mime_type = _get_mime_type_with_magic(inputs)
+        # Fallback to magic numbers if python-magic is not available or fails
+        if not mime_type:
+            mime_type = _get_mime_type_from_magic_numbers(inputs)
 
         processed_inputs = base64.b64encode(inputs).decode('utf-8')
 

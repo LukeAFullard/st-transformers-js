@@ -24,15 +24,14 @@ class TestComponentV2(unittest.TestCase):
     def tearDown(self):
         self.component_func_patcher.stop()
 
-    def test_v2_component_call_with_on_change(self):
+    def test_v2_component_call(self):
         """
-        Test that the v2 component is called with the correct arguments and on_change callback.
+        Test that the v2 component is called with the correct arguments.
         """
         model_name = "test-model"
         pipeline_type = "text-classification"
         inputs = "Hello, v2!"
         config = {"a": 1}
-        on_change_callback = MagicMock()
 
         transformers_v2.transformers_js_pipeline_v2(
             model_name=model_name,
@@ -40,7 +39,6 @@ class TestComponentV2(unittest.TestCase):
             inputs=inputs,
             config=config,
             key="test_v2",
-            on_change=on_change_callback
         )
 
         expected_data = {
@@ -53,10 +51,6 @@ class TestComponentV2(unittest.TestCase):
         self.mock_component_func.assert_called_once_with(
             data=expected_data,
             key="test_v2",
-            on_status_change=on_change_callback,
-            on_progress_change=on_change_callback,
-            on_result_change=on_change_callback,
-            on_error_change=on_change_callback,
         )
 
     def test_v2_image_input(self):
@@ -86,10 +80,6 @@ class TestComponentV2(unittest.TestCase):
             self.mock_component_func.assert_called_once_with(
                 data=expected_data,
                 key="test_img_v2",
-                on_status_change=ANY,
-                on_progress_change=ANY,
-                on_result_change=ANY,
-                on_error_change=ANY,
             )
 
 if __name__ == '__main__':
