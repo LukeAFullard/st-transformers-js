@@ -40,7 +40,7 @@ Once you have these installed, you can follow these steps to set up the developm
 
 5.  **Run the tests:**
     ```bash
-    python -m unittest discover tests
+    python -m pytest
     ```
 
 6.  **Run the demo application:**

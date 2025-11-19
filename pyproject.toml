@@ -26,7 +26,7 @@ classifiers = [
     "Framework :: Streamlit",
 ]
 dependencies = [
-    "streamlit>=1.28.0,<2.0.0",
+    "streamlit>=1.23.0,<2.0",
 ]
 
 [project.urls]
@@ -53,5 +53,3 @@ st_transformers_js = [
     "frontend_v2/dist/*",
 ]
 
-[tool.streamlit.components.st_transformers_js_v2]
-asset_dir = "st_transformers_js/frontend_v2/dist"
