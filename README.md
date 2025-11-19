@@ -215,4 +215,39 @@ if "result_obj_v2" in st.session_state and st.session_state.result_obj_v2:
 4.  **Run Demo App:** `streamlit run demo_app_v2.py`
 
 ---
+
+## 🔧 Troubleshooting
+
+- **`RuntimeWarning: Frontend ... build directory not found`**: This means you haven't built the frontend assets yet. Run `./build_script.sh` from the root of the repository to build them.
+- **Image Processing Errors on Windows**: If you encounter errors related to MIME type detection for images on Windows, it may be because the `python-magic` library is not installed or configured correctly. This component has a fallback mechanism, but for full support, you may need to install `python-magic-bin`.
+- **Component fails to load model**: The component downloads models from Hugging Face Hub at runtime. If you are in an environment with no internet access, the component will fail to load new models. Ensure you have a stable internet connection.
+
+---
+
+## 💻 Browser Compatibility
+
+This component relies on [WebAssembly](https://webassembly.org/) to run the `transformers.js` library directly in the browser. It is compatible with all modern browsers that have WebAssembly support, including:
+
+- Google Chrome (Desktop and Mobile)
+- Mozilla Firefox (Desktop and Mobile)
+- Apple Safari (Desktop and Mobile)
+- Microsoft Edge
+
+Internet Explorer is **not** supported.
+
+---
+
+## 🚀 Performance Notes
+
+- **Model Loading**: The first time you use a model, it needs to be downloaded from the Hugging Face Hub. This can take some time, especially for large models. Subsequent uses will be much faster as the model will be cached by the browser.
+- **Inference Time**: The speed of the model depends on the complexity of the model and the hardware of the user's machine. Larger models will take longer to run, and performance will vary between desktop and mobile devices.
+- **Hardware Acceleration**: `Transformers.js` can leverage hardware acceleration (e.g., WebGPU) if available, which can significantly improve performance.
+
+---
+
+## ☁️ Stlite and Streamlit Cloud
+
+This component is fully compatible with both `stlite` (Pyodide) and Streamlit Cloud. Because all models run in the browser, there are no special server-side dependencies or configurations required. This makes it an ideal choice for serverless deployments.
+
+---
 *For legacy V1 examples, license, and contribution guidelines, see the original documentation sections.*
